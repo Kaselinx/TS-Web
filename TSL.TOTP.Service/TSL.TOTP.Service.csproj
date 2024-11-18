@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Otp.NET" Version="1.4.0" />
+    <PackageReference Include="QRCoder" Version="1.6.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TSL.Base.Platform\TSL.Base.Platform.csproj" />
+    <ProjectReference Include="..\TSL.TAAA.DataAccessLayer\TSL.TAAA.DataAccessLayer.csproj" />
+    <ProjectReference Include="..\TSL.TOTP.Model.DataAccessLayer\TSL.Common.Model.DataAccessLayer.csproj" />
+    <ProjectReference Include="..\TSL.TOTP.Model.Service\TSL.Common.Model.Service.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,6 @@
+@TSL.TAAS.API_HostAddress = http://localhost:5217
+
+GET {{TSL.TAAS.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

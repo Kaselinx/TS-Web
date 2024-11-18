@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
+	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\TSL.Base.Platform\TSL.Base.Platform.csproj" />
+	  <ProjectReference Include="..\TSL.TOTP.Model.DataAccessLayer\TSL.TOTP.Model.DataAccessLayer.csproj" />
+	</ItemGroup>
+
+</Project>

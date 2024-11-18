@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TSL.Base.Platform\TSL.Base.Platform.csproj" />
+    <ProjectReference Include="..\TSL.TOTP.Model.DataAccessLayer\TSL.Common.Model.DataAccessLayer.csproj" />
+  </ItemGroup>
+
+</Project>
