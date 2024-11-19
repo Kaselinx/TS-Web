@@ -46,6 +46,6 @@ namespace TSL.TOTP.Service.Interface
         /// <param name="label">label</param>
         /// <param name="isActive">is currently active</param>
         /// <returns></returns>
-        Task<ServiceResult<IEnumerable<SecretDataServiceModel>>> GetOTPTUsersByCriteria(string employeeId, string label, bool isActive);
+        Task<ServiceResult<IEnumerable<SecretDataServiceModel>>> GetOTPTUsersByCriteria(string employeeId, string label, bool? isActive);
     }
 }

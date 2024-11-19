@@ -54,12 +54,12 @@ namespace TSL.TAAS.API.Controllers
         [HttpPost]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        public async Task<IActionResult> GetOTPTUserByCriteria(string employeeId, string label,bool isActive )
+        public async Task<IActionResult> GetOTPTUserByCriteria(string employeeId, string label,bool? isActive )
         {
             logger.Info(nameof(GetOTPTUserByCriteria), employeeId, label, isActive);
             // async call.. recommand way for web api. 
 
-            ServiceResult<IEnumerable<SecretDataServiceModel>> result = await iTOTPService.GetOTPTUsersByCriteria(employeeId, label, isActive);
+            ServiceResult<IEnumerable<SecretDataServiceModel>> result = await iTOTPService.GetOTPTUsersByCriteria(employeeId, label, isActive.Value);
             if (result.IsOk)
             {
                 return Ok(result.Data);

@@ -17,6 +17,7 @@ using TSL.TAAS.Service.POT;
 using TSL.TOTP.Service.Interface;
 using NLog;
 using NLog.Web;
+using Microsoft.Extensions.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +26,13 @@ var logger = NLogBuilder.ConfigureNLog("nlog.config").GetCurrentClassLogger();
 try
 {
     logger.Debug("init main");
+
+    // Add configuration files
+    string environment = builder.Environment.EnvironmentName;
+    builder.Configuration
+        .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+        .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: true);
+
 
     // Call the ConfigureServices method to add services to the container
     ConfigureServices(builder.Services, builder.Environment);
@@ -38,7 +46,7 @@ try
         memoryCacheStorage.CacheDuration = TimeSpan.FromMinutes(60);
     }
 
-    if (app.Environment.IsDevelopment())
+    if (!app.Environment.IsProduction())
     {
         app.UseSwagger();
         app.UseSwaggerUI();
@@ -70,7 +78,7 @@ try
     app.UseSoapEndpoint<IPOTService>("/POTService.asmx", soapEncoderOptions);
 
     #region Set Web API Operation Logging
-
+ 
     try
     {
         app.UseMiddleware<WebAPIRequestResponseLogMiddleware>();

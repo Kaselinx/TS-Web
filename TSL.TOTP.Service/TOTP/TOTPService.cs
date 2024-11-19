@@ -75,7 +75,7 @@ namespace TSL.TOTP.Service.TOTP
         /// <param name="isActive">is currently active</param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public async Task<ServiceResult<IEnumerable<SecretDataServiceModel>>> GetOTPTUsersByCriteria(string employeeId, string label, bool isActive)
+        public async Task<ServiceResult<IEnumerable<SecretDataServiceModel>>> GetOTPTUsersByCriteria(string employeeId, string label, bool? isActive)
         {
             _logger.Info(nameof(GetOTPTUsersByCriteria), new { employeeId, label, isActive });
             try

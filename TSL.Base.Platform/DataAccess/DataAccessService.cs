@@ -108,7 +108,7 @@ namespace TSL.Base.Platform.DataAccess
         {
             get
             {
-                string[] connectionArray = string.IsNullOrEmpty(this._connectionStr) ? Array.Empty<string>() : this._connectionStr.Split(';');
+                string[] connectionArray = string.IsNullOrEmpty(_connectionStr) ? [] : _connectionStr.Split(';');
                 string dbBasicInfo = connectionArray.Length > 3 ? $"{connectionArray[0]} + {connectionArray[1]} + {connectionArray[2]}" : "連線參數不包含;";
                 return dbBasicInfo;
             }
