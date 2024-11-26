@@ -1,9 +1,8 @@
-﻿using System.Net;
-using TSL.Base.Platform.lnversionOfControl;
+﻿using TSL.Base.Platform.lnversionOfControl;
 using TSL.Base.Platform.Log;
 using TSL.Base.Platform.Utilities;
 
-namespace TSL.TAAA.API.Helpers
+namespace TSL.TSTD.API.Helpers
 {
     /// <summary>
     /// Web API Logging Middleware
@@ -11,7 +10,7 @@ namespace TSL.TAAA.API.Helpers
     public class WebAPIRequestResponseLogMiddleware
     {
         private readonly RequestDelegate _next;
-    
+
         /// <summary>
         /// Constructor
         /// </summary>
@@ -43,7 +42,7 @@ namespace TSL.TAAA.API.Helpers
 
                 traceid = logger?.GetTraceId(traceid);
                 logger.APILogTrace(localIPAddress, remoteIPAddress, "SystemName", "VendorCode", "VendorName", certificate, APIType.Request.ToString(), requestUrl, request, traceid);
-                
+
 
 
                 // Copy a pointer to the original response body stream
@@ -53,7 +52,7 @@ namespace TSL.TAAA.API.Helpers
                 using (var responseBody = new MemoryStream())
                 {
                     // ...and use that for the temporary response body
-                    context.Response.Body = responseBody;  
+                    context.Response.Body = responseBody;
 
                     // Continue down the Middleware pipeline, eventually returning to this class
                     await _next(context).ConfigureAwait(false);

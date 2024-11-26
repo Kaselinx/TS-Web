@@ -1,16 +1,11 @@
-using SoapCore;
 using StackExchange.Profiling.Storage;
-using System.ServiceModel.Channels;
 using TSL.Base.Platform.DataAccess;
 using TSL.Base.Platform.lnversionOfControl;
 using TSL.Base.Platform.Log;
 using TSL.Base.Platform.Services;
 using TSL.Base.Platform.Utilities;
-using TSL.TAAA.Service.Interface;
-using TSL.TAAS.Service.OPT;
-using TSL.TAAS.Service.POT;
 using NLog.Web;
-using TSL.TAAA.API.Helpers;
+using TSL.TSTD.API.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -52,26 +47,9 @@ try
     app.UseRouting();
     app.UseSession(); // Enable session middleware
 
-    // Configure SoapEncoderOptions
-    var soapEncoderOptions = new SoapEncoderOptions
-    {
-        MessageVersion = MessageVersion.Soap12WSAddressing10,
-        ReaderQuotas = new System.Xml.XmlDictionaryReaderQuotas
-        {
-            MaxDepth = 32,
-            MaxStringContentLength = 8192,
-            MaxArrayLength = 16384,
-            MaxBytesPerRead = 4096,
-            MaxNameTableCharCount = 16384
-        }
-    };
-
-    // UseSoapEndpoint with configured SoapEncoderOptions
-    app.UseSoapEndpoint<IOTPService>("/OTPService.asmx", soapEncoderOptions);
-    app.UseSoapEndpoint<IPOTService>("/POTService.asmx", soapEncoderOptions);
 
     #region Set Web API Operation Logging
- 
+
     try
     {
         app.UseMiddleware<WebAPIRequestResponseLogMiddleware>();
@@ -120,16 +98,10 @@ void ConfigureServices(IServiceCollection services, IWebHostEnvironment environm
 
     #region database setting
     services.AddOptions();
+
     // Add the configuration to our DI container for later user add tsaa and tstd data access layer
-    services.Configure<TAAADataAccessOption>(configuration.GetSection("TAAADataAccessLayer"));
     services.Configure<TSTDDataAccessOption>(configuration.GetSection("TSTDDataAccessLayer"));
-    #endregion
 
-    #region web services setting 
-
-    services.AddSoapCore();
-    services.AddSingleton<IOTPService, OTPService>();
-    services.AddSingleton<IPOTService, POTService>();
     services.AddDataProtection();
     services.AddDistributedMemoryCache();
     services.AddSession(options =>
@@ -138,7 +110,6 @@ void ConfigureServices(IServiceCollection services, IWebHostEnvironment environm
         options.Cookie.HttpOnly = true;
         options.Cookie.IsEssential = true;
     });
-
     #endregion
 
     services.Configure<TransactionTableWhiteListOption>(configuration.GetSection("TransactionTableWhitelist"));

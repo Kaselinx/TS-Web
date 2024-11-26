@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
+﻿using Dapper.Contrib.Extensions;
 namespace TSL.Common.Model.DataAccessLayer.TOTP
 {
     /// <summary>
@@ -13,7 +11,6 @@ namespace TSL.Common.Model.DataAccessLayer.TOTP
         /// Secret Id as primary key
         /// </summary>
         [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int SecretId { get; set; }
 
         /// <summary>

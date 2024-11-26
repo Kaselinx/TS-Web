@@ -40,7 +40,7 @@ namespace TSL.TOTP.Service.TOTP
         /// <returns></returns>
         public async Task<ServiceResult<string>> GenerateQRCodeAsync(string employeeId, string TOTPLabel)
         {
-            _logger.Info(nameof(GenerateQRCodeAsync));
+            _logger.Info(nameof(GenerateQRCodeAsync), new { employeeId, TOTPLabel });
             QRCodeGenerator qRCodeGenerator = new QRCodeGenerator();
             SecretDataServiceModel secretData = new SecretDataServiceModel
             {

@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace TSL.TAAA.API.Controllers
+namespace TSL.TSTD.API.Controllers
 {
     [ApiController]
     [Route("[controller]")]

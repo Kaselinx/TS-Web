@@ -1,4 +1,4 @@
-﻿namespace TSL.TAAS.API.Model
+﻿namespace TSL.TAAA.API.Model
 {
     public class EmployeeContractViewModel
     {
