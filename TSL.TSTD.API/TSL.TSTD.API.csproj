@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -20,8 +20,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\TSL.Base.Platform\TSL.Base.Platform.csproj" />
-    <ProjectReference Include="..\TSL.TAAS.Service\TSL.TAAA.Service.csproj" />
-    <ProjectReference Include="..\TSL.TOTP.Service\TSL.TOTP.Service.csproj" />
     <ProjectReference Include="..\TSL.TSTD.Service\TSL.TSTD.Service.csproj" />
   </ItemGroup>
 
