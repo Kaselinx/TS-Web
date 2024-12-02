@@ -17,6 +17,8 @@ using TSL.Base.Platform.MiniProfiler;
 using TSL.Base.Platform.Transactions;
 using TSL.Base.Platform.Utilities;
 using TableAttribute = Dapper.Contrib.Extensions.TableAttribute;
+using CredentialManagement;
+
 
 namespace TSL.Base.Platform.DataAccess
 {
@@ -41,6 +43,22 @@ namespace TSL.Base.Platform.DataAccess
         /// <param name="transactionsProvider">transactionsProvider</param>
         public DataAccessService( string connectionString, ITransactionsProvider transactionsProvider)
         {
+            // Retrieve a credential by its target name
+            Credential credential = new Credential();
+            credential.Target = Configuration["credential:Target"];
+            bool success = credential.Load();
+
+            if (success)
+            {
+                string username = credential.Username;
+                string password = credential.Password;
+                // Use the retrieved username and password as needed
+            }
+            else
+            {
+                // Credential not found
+            }
+
             _connectionStr = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
             _connectionSecStr = _connectionStr;
             _transactionsProvider = transactionsProvider ?? throw new ArgumentNullException(nameof(transactionsProvider));

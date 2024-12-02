@@ -101,6 +101,8 @@ void ConfigureServices(IServiceCollection services, IWebHostEnvironment environm
 
     // Add the configuration to our DI container for later user add tsaa and tstd data access layer
     services.Configure<TSTDDataAccessOption>(configuration.GetSection("TSTDDataAccessLayer"));
+    // Register the configuration section
+    services.Configure<CredentialOptions>(configuration.GetSection("credential"));
 
     services.AddDataProtection();
     services.AddDistributedMemoryCache();
