@@ -12,5 +12,11 @@
     <PackageReference Include="System.ServiceModel.Primitives" Version="8.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\TSL.Base.Platform\TSL.Base.Platform.csproj" />
+    <ProjectReference Include="..\TSL.TAAA.DataAccessLayer\TSL.TAAA.DataAccessLayer.csproj" />
+    <ProjectReference Include="..\TSL.TOTP.Model.Service\TSL.Common.Model.Service.csproj" />
+  </ItemGroup>
+
 
 </Project>
