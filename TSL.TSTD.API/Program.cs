@@ -6,11 +6,13 @@ using TSL.Base.Platform.Services;
 using TSL.Base.Platform.Utilities;
 using NLog.Web;
 using TSL.TSTD.API.Helpers;
+using NLog;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // NLog: setup the logger first to catch all errors
-var logger = NLogBuilder.ConfigureNLog("nlog.config").GetCurrentClassLogger();
+var logger = LogManager.GetLogger("mainLog");
+
 try
 {
     logger.Debug("init main");
@@ -40,7 +42,7 @@ try
         app.UseSwaggerUI();
         app.UseDeveloperExceptionPage();
     }
-
+    logger.Info("Environment: {0}", environment);
     // Configure the HTTP request pipeline.
     app.UseHttpsRedirection();
     app.UseAuthorization();
@@ -101,6 +103,8 @@ void ConfigureServices(IServiceCollection services, IWebHostEnvironment environm
 
     // Add the configuration to our DI container for later user add tsaa and tstd data access layer
     services.Configure<TSTDDataAccessOption>(configuration.GetSection("TSTDDataAccessLayer"));
+    // Register the configuration section
+    services.Configure<CredentialOptions>(configuration.GetSection("credential"));
 
     services.AddDataProtection();
     services.AddDistributedMemoryCache();

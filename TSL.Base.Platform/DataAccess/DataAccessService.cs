@@ -17,6 +17,8 @@ using TSL.Base.Platform.MiniProfiler;
 using TSL.Base.Platform.Transactions;
 using TSL.Base.Platform.Utilities;
 using TableAttribute = Dapper.Contrib.Extensions.TableAttribute;
+using CredentialManagement;
+
 
 namespace TSL.Base.Platform.DataAccess
 {
@@ -33,14 +35,34 @@ namespace TSL.Base.Platform.DataAccess
         private bool _enableMiniprofiler;
         private ITransactionsProvider _transactionsProvider;
         private ILog<DataAccessService> _logger = default!;
+        private readonly string _credentialOptionsTargetStr;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DataAccessService"/> class.
         /// </summary>
         /// <param name="connectionString">Connection string used to connect to the database</param>
         /// <param name="transactionsProvider">transactionsProvider</param>
-        public DataAccessService( string connectionString, ITransactionsProvider transactionsProvider)
+        /// <param name="credentialOptions">transactionsProvider</param>
+        public DataAccessService(string connectionString, ITransactionsProvider transactionsProvider, CredentialOptions credentialOptions )
         {
+            // Retrieve a credential by its target name
+            //Credential credential = new Credential
+            //{
+            //    Target = credentialOptions.Target
+            //};
+            //bool success = credential.Load();
+
+            //if (success)
+            //{
+            //    string username = credential.Username;
+            //    string password = credential.Password;
+            //    // Use the retrieved username and password as needed
+            //}
+            //else
+            //{
+            //    // Credential not found
+            //}
+
             _connectionStr = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
             _connectionSecStr = _connectionStr;
             _transactionsProvider = transactionsProvider ?? throw new ArgumentNullException(nameof(transactionsProvider));
@@ -67,12 +89,37 @@ namespace TSL.Base.Platform.DataAccess
         /// <param name="generalOption">Basic Setting</param>
         /// <param name="transactionsProvider">transactionsProvider</param>
         /// <param name="logger">logger</param>
-        public DataAccessService(IOptions<DataAccessOption> daOption, IOptions<GeneralOption> generalOption, ITransactionsProvider transactionsProvider, ILog<DataAccessService> logger)
+        public DataAccessService(IOptions<DataAccessOption> daOption, IOptions<GeneralOption> generalOption, ITransactionsProvider transactionsProvider, ILog<DataAccessService> logger, IOptions<CredentialOptions> credentialOptions)
         {
             _connectionStr = daOption.Value.ConnectionStringPrimary;
             _connectionSecStr = daOption.Value.ConnectionStringSecondary;
             _connectionTimeout = daOption.Value.ConnetionTimeout;
             _enableMiniprofiler = generalOption.Value.EnableMiniProfiler;
+            //_credentialOptionsTargetStr = credentialOptions.Value.Target;
+            _credentialOptionsTargetStr = daOption.Value.Credential;
+
+            // try gettingcredential from windows credential manager
+            if (!string.IsNullOrEmpty(_connectionStr) && !string.IsNullOrEmpty(_credentialOptionsTargetStr))
+            {
+                //Retrieve a credential by its target name
+                Credential credential = new Credential
+                {
+                    Target = _credentialOptionsTargetStr
+                };
+                bool success = credential.Load();
+
+                // if succesful get the credential then use it
+                if (success)
+                {
+                    //replace connstring string with credential
+                    _connectionStr = _connectionStr.Replace("{DB_USER}", credential.Username).Replace("{DB_PASSWORD}", credential.Password);
+                }
+                else
+                {
+                    logger.Warning($"Credential not found for target: {_credentialOptionsTargetStr}. Using Orginal Connection String");
+                }
+            }
+
             _transactionsProvider = transactionsProvider ?? throw new ArgumentNullException(nameof(transactionsProvider));
             _logger = logger;
 
@@ -2566,8 +2613,9 @@ namespace TSL.Base.Platform.DataAccess
     /// <param name="generalOption">Basic Setting</param>
     /// <param name="transactionsProvider">transactionsProvider</param>
     /// <param name="logger">logger</param>
+    /// <param name="credentialOptions">credential</param>
     [RegisterIOC(typeof(DataAccessService<>), typeof(DataAccessService<>), IocType.Transient)]
-    public class DataAccessService<T>(IOptions<T> daOption, IOptions<GeneralOption> generalOption, ITransactionsProvider transactionsProvider, ILog<DataAccessService> logger) : DataAccessService(daOption, generalOption, transactionsProvider, logger)
+    public class DataAccessService<T>(IOptions<T> daOption, IOptions<GeneralOption> generalOption, ITransactionsProvider transactionsProvider, ILog<DataAccessService> logger, IOptions<CredentialOptions> credentialOptions) : DataAccessService(daOption, generalOption, transactionsProvider, logger, credentialOptions)
          where T : DataAccessOption, new()
     {
     }

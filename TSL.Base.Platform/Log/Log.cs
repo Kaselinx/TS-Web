@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
 
 namespace TSL.Base.Platform.Log
 {
@@ -136,7 +137,7 @@ namespace TSL.Base.Platform.Log
 
         public void Warning(string message, params object[] objArray)
         {
-            throw new NotImplementedException();
+            _logger.Warn(message, FormatMessageWithParams(message, objArray));
         }
 
         public void APILogTrace(string localIPAddress, string remoteIPAddress, string systemName, string vendorCode, string venderName, string certificate, string type, string requestUrl, string message, string? traceId = null)

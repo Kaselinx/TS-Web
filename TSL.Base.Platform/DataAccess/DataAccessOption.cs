@@ -21,5 +21,11 @@ namespace TSL.Base.Platform.DataAccess
         /// Connection Timeout
         /// </summary>
         public int ConnetionTimeout { get; set; }
+
+
+        /// <summary>
+        /// windows credential
+        /// </summary>
+        public string? Credential { get; set; }
     }
 }
