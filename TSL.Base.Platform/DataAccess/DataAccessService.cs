@@ -45,24 +45,6 @@ namespace TSL.Base.Platform.DataAccess
         /// <param name="credentialOptions">transactionsProvider</param>
         public DataAccessService(string connectionString, ITransactionsProvider transactionsProvider, CredentialOptions credentialOptions )
         {
-            // Retrieve a credential by its target name
-            //Credential credential = new Credential
-            //{
-            //    Target = credentialOptions.Target
-            //};
-            //bool success = credential.Load();
-
-            //if (success)
-            //{
-            //    string username = credential.Username;
-            //    string password = credential.Password;
-            //    // Use the retrieved username and password as needed
-            //}
-            //else
-            //{
-            //    // Credential not found
-            //}
-
             _connectionStr = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
             _connectionSecStr = _connectionStr;
             _transactionsProvider = transactionsProvider ?? throw new ArgumentNullException(nameof(transactionsProvider));

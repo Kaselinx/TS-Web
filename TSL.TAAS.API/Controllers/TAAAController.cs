@@ -3,7 +3,8 @@ using System.Net;
 using TSL.Base.Platform.Log;
 using TSL.Base.Platform.Utilities;
 using TSL.Common.Model.Service.TOTP;
-using TSL.TAAA.Service.Interface;
+using TSL.TAAA.Service.OPTWebService;
+using TSL.TAAA.Service.POTWebService;
 using TSL.TOTP.Service.Interface;
 
 namespace TSL.TAAA.API.Controllers
@@ -19,10 +20,10 @@ namespace TSL.TAAA.API.Controllers
     {
         private readonly ILog<TAAAController> logger;
         private readonly ITOTPService iTOTPService;
-        private readonly IOTPService iOTPService;
-        private readonly IPOTService iPOTService;
+        private readonly IOTPWS iOTPService;
+        private readonly IPOTWS iPOTService;
 
-        public TAAAController(ILog<TAAAController> logger, ITOTPService iTOTPService, IOTPService iOTPService, IPOTService iPOTService)
+        public TAAAController(ILog<TAAAController> logger, ITOTPService iTOTPService, IOTPWS iOTPService, IPOTWS iPOTService)
         {
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.iTOTPService = iTOTPService ?? throw new ArgumentNullException(nameof(iTOTPService));

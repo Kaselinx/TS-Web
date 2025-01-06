@@ -6,11 +6,12 @@ using TSL.Base.Platform.lnversionOfControl;
 using TSL.Base.Platform.Log;
 using TSL.Base.Platform.Services;
 using TSL.Base.Platform.Utilities;
-using TSL.TAAA.Service.Interface;
-using TSL.TAAS.Service.OPT;
-using TSL.TAAS.Service.POT;
 using NLog.Web;
 using TSL.TAAA.API.Helpers;
+using TSL.TAAA.Service.OPTWebService;
+using TSL.TAAA.Service.POTWebService;
+using System.Configuration;
+using TSL.Common.Model.Service.OTP;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -67,8 +68,8 @@ try
     };
 
     // UseSoapEndpoint with configured SoapEncoderOptions
-    app.UseSoapEndpoint<IOTPService>("/OTPService.asmx", soapEncoderOptions);
-    app.UseSoapEndpoint<IPOTService>("/POTService.asmx", soapEncoderOptions);
+    app.UseSoapEndpoint<IOTPWS>("/OTPService.asmx", soapEncoderOptions);
+    app.UseSoapEndpoint<IPOTWS>("/POTService.asmx", soapEncoderOptions);
 
     #region Set Web API Operation Logging
  
@@ -117,6 +118,7 @@ void ConfigureServices(IServiceCollection services, IWebHostEnvironment environm
     services.AddControllers();
     services.AddEndpointsApiExplorer();
     services.AddSwaggerGen();
+    services.AddScoped<IAuthService, AuthService>();
 
     #region database setting
     services.AddOptions();
@@ -127,9 +129,10 @@ void ConfigureServices(IServiceCollection services, IWebHostEnvironment environm
 
     #region web services setting 
 
+    services.AddHttpContextAccessor();
     services.AddSoapCore();
-    services.AddSingleton<IOTPService, OTPService>();
-    services.AddSingleton<IPOTService, POTService>();
+    services.AddSingleton<IOTPWS, OTPWS>();
+    services.AddSingleton<IPOTWS, POTWS>();
     services.AddDataProtection();
     services.AddDistributedMemoryCache();
     services.AddSession(options =>
@@ -139,6 +142,10 @@ void ConfigureServices(IServiceCollection services, IWebHostEnvironment environm
         options.Cookie.IsEssential = true;
     });
 
+    #endregion
+
+    #region Radius setting
+    services.Configure<RadiusAuthorizationOptions>(configuration.GetSection("RadiusAuthorization"));
     #endregion
 
     services.Configure<TransactionTableWhiteListOption>(configuration.GetSection("TransactionTableWhitelist"));

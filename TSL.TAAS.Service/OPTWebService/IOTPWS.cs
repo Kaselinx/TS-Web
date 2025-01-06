@@ -2,10 +2,10 @@
 using System.ServiceModel;
 //using TSL.TAAA.Model.Service.OTP;
 
-namespace TSL.TAAA.Service.Interface
+namespace TSL.TAAA.Service.OPTWebService
 {
     [ServiceContract]
-    public interface IOTPService
+    public interface IOTPWS
     {
         [OperationContract]
         string HelloOTPService(string name);
