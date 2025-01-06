@@ -1,11 +1,11 @@
 ﻿//using Bogus;
 //using Microsoft.Extensions.Configuration.UserSecrets;
 //using TSL.TAAA.Model.Service.OTP;
-using TSL.TAAA.Service.Interface;
+using TSL.TAAA.Service.OPTWebService;
 
-namespace TSL.TAAS.Service.OPT
+namespace TSL.TAAA.Service.OPTWebService
 {
-    public class OTPService : IOTPService
+    public class OTPWS : IOTPWS
     {
         public string HelloOTPService(string name)
         {

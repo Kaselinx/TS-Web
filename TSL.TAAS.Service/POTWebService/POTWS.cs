@@ -1,10 +1,10 @@
 ﻿using System.ServiceModel;
-using TSL.TAAA.Service.Interface;
+using TSL.TAAA.Service.POTWebService;
 
-namespace TSL.TAAS.Service.POT
+namespace TSL.TAAA.Service.POTWebService
 {
     [ServiceContract]
-    public class POTService : IPOTService
+    public class POTWS : IPOTWS
     {
         public string HelloPOTService(string name)
         {

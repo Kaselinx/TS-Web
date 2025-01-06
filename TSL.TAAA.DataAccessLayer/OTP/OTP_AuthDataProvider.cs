@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using TSL.Base.Platform.DataAccess;
+using TSL.Base.Platform.lnversionOfControl;
 using TSL.Base.Platform.Log;
 using TSL.Common.Model.DataAccessLayer.OTP;
 using TSL.Common.Model.DataAccessLayer.TSTD;
@@ -7,6 +8,7 @@ using TSL.TAAA.DataAccessLayer.TOTP;
 
 namespace TSL.TAAA.DataAccessLayer.OTP
 {
+    [RegisterIOC]
     public class OTP_AuthDataProvider : IOTP_AuthDataProvider
     {
         private readonly DataAccessService<TAAADataAccessOption> _TAAADBAccessService;

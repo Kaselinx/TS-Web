@@ -5,29 +5,36 @@ using TSL.TAAA.Service.Interface;
 using TSL.TAAA.DataAccessLayer.OTP;
 using TSL.Base.Platform.Log;
 using TSL.Base.Platform.lnversionOfControl;
-using System.Collections.Generic;
 using TSL.Common.Model.DataAccessLayer.OTP;
+using System.DirectoryServices.AccountManagement;
+using System.DirectoryServices;
+using GSF.Communication.Radius;
 using System.Drawing;
-using TSL.Common.Model.DataAccessLayer.TSTD;
-using TSL.Common.Model.Service.TSTD;
+using TSL.Base.Platform.Services;
 
-namespace TSL.TAAA.Service.OPT
+namespace TSL.TAAA.Service.OPTService
 {
-    [RegisterIOC]
+    [RegisterIOC(IocType.Singleton)]
     public class OTP_AuthService : IOTP_AuthService
     {
         private readonly IOTP_AuthDataProvider _otp_AuthDataProvider;
         private readonly ILog<OTP_AuthService> _logger;
+        private readonly RadiusAuthorizationOptions _radiusOptions;
+        private readonly IAuthService _authService;
 
         /// <summary>
         /// constroctor
         /// </summary>
         /// <param name="otp_AuthDataProvider">otp auth data table provider</param>
         /// <param name="logger">logger</param>
-        public OTP_AuthService(IOTP_AuthDataProvider otp_AuthDataProvider, ILog<OTP_AuthService> logger)
+        /// <param name="radiusOptions">radius options</param>      
+        /// <param name="authService">radius options</param>     
+        public OTP_AuthService(IOTP_AuthDataProvider otp_AuthDataProvider, ILog<OTP_AuthService> logger, RadiusAuthorizationOptions radiusOptions, IAuthService authService)
         {
             _otp_AuthDataProvider = otp_AuthDataProvider;
             _logger = logger;
+            _radiusOptions = radiusOptions;
+            _authService = authService;
         }
 
 
@@ -110,7 +117,7 @@ namespace TSL.TAAA.Service.OPT
                     int result = await _otp_AuthDataProvider.InsertAuthDatAsync(ServiceModelToProviderModel(otpAuth));
                     return new ServiceResult<int>(true, "OK", result);
                 }
-            } 
+            }
             catch (Exception ex)
             {
                 // error logging
@@ -121,7 +128,80 @@ namespace TSL.TAAA.Service.OPT
         }
 
 
+        /// <summary>
+        /// Validation radius token
+        /// </summary>
+        /// <param name="userId">user id</param>
+        /// <param name="sToken">radius token</param>
+        /// <returns></returns>
+
+        public async Task<bool> TokenValidation( string userId, string sToken)
+        {
+            // entry logging
+            _logger.Info(nameof(TokenValidation), new { userId, sToken } );
+
+            // Try validating with the primary RADIUS server
+            bool isValid = await ValidateTokenWithRadiusServer(
+                _radiusOptions.RadiusServerPrimary,
+                _radiusOptions.RadiusSecretPrimary,
+                _radiusOptions.RadiusServerPortPrimary,
+                userId,
+                sToken
+            );
+
+            if (!isValid)
+            {
+                _logger.Info(nameof(TokenValidation) + "; Secondary Server ", new { userId, sToken });
+
+                // If validation with the primary server fails, try the secondary server
+                isValid = await ValidateTokenWithRadiusServer(
+                    _radiusOptions.RadiusServerSecondary,
+                    _radiusOptions.RadiusSecretSecondary,
+                    _radiusOptions.RadiusServerPortSecondary,
+                    userId,
+                    sToken
+                );
+            }
+
+            return isValid;
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="userId">user id</param>
+        /// <param name="password">ldap password</param>
+        /// <returns></returns>
+        public string CheckUserAdStatus(string userId, string password)
+        {
+            // entry logging, params are not loged because password are sensitive data.
+            _logger.Info(nameof(CheckUserAdStatus), new { userId });
+
+            try
+            {
+                bool result = _authService.ADValidateCredentials(userId, password);
+
+                if (result)
+                {
+                    return string.Empty;
+                }
+                else
+                {
+                    return "【登入失敗】請確認您的帳號/密碼是否正確或逾期！(LDAP 驗證錯誤)";
+                }
+            }
+            catch (Exception ex)
+            {
+                // error logging
+                _logger.Error("error", ex, nameof(CheckUserAdStatus));
+                return "【登入失敗】(LDAP 驗證錯誤)";
+            }
+        }
+
+
         #region private methods
+
         /// <summary>
         /// convert from provider model to service. 
         /// </summary>
@@ -171,6 +251,61 @@ namespace TSL.TAAA.Service.OPT
 
             return oTP_AUTH;
         }
+
+
+
+        /// <summary>
+        /// Validate the token with the RADIUS server
+        /// </summary>
+        /// <param name="server">radius server</param>
+        /// <param name="secret">secret password</param>
+        /// <param name="ports">ports </param>
+        /// <param name="userId">user id </param>
+        /// <param name="sToken">token</param>
+        /// <returns></returns>
+        private async Task<bool> ValidateTokenWithRadiusServer(string server, string secret, int[] ports, string userId, string sToken)
+        {
+            // entry logging
+            _logger.Info(nameof(ValidateTokenWithRadiusServer), new { server, secret, ports, userId, sToken });
+
+            foreach (var port in ports)
+            {
+                try
+                {
+                    // Create a new RadiusClient instance
+                    using (var radiusClient = new RadiusClient(server, port, secret))
+                    {
+                        // Create a new RadiusPacket for Access-Request
+                        var request = new RadiusPacket
+                        {
+                            Type = PacketType.AccessRequest,
+                            Identifier = (byte)new Random().Next(0, 256),
+                            Authenticator = RadiusPacket.CreateRequestAuthenticator(secret)
+                        };
+
+                        // Add attributes to the request
+                        request.Attributes.Add(new RadiusPacketAttribute(AttributeType.UserName, RadiusPacket.Encoding.GetBytes(userId)));
+                        request.Attributes.Add(new RadiusPacketAttribute(AttributeType.UserPassword, RadiusPacket.EncryptPassword(sToken, secret, request.Authenticator)));
+
+                        // Send the request and get the response
+                        var response = await Task.Run(() => radiusClient.ProcessRequest(request));
+
+                        // Check if the response is an Access-Accept
+                        if (response.Type == PacketType.AccessAccept)
+                        {
+                            return true;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error($"Error validating token with RADIUS server {server} on port {port}", ex, new { server, secret, ports, userId, sToken });
+                }
+            }
+
+            return false;
+        }
+
 
 
         #endregion
