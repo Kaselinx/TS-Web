@@ -23,6 +23,27 @@ namespace TSL.TAAA.Service.TZLogService
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
+
+        /// <summary>
+        /// insert tzlog
+        /// </summary>
+        /// <param name="sUSER_ID"></param>
+        /// <param name="sLOG_DT"></param>
+        /// <param name="sSTAT"></param>
+        /// <param name="sSRCE_IP"></param>
+        /// <param name="sAP_CD"></param>
+        /// <param name="sDATA_TYP"></param>
+        /// <param name="iCNTS"></param>
+        /// <param name="sAPFN"></param>
+        /// <param name="sACT"></param>
+        /// <param name="sOBJ_TYP"></param>
+        /// <param name="sACCS_ID"></param>
+        /// <param name="sSQL_CMD"></param>
+        /// <param name="sNOTE1"></param>
+        /// <param name="sNOTE2"></param>
+        /// <param name="sNOTE3"></param>
+        /// <param name="sBSR_CD"></param>
+        /// <returns></returns>
         public bool InsertTZLog(string sUSER_ID, string sLOG_DT, string sSTAT, string sSRCE_IP, string sAP_CD, string sDATA_TYP, int iCNTS, string sAPFN, string sACT, string sOBJ_TYP, string sACCS_ID, string sSQL_CMD, string sNOTE1, string sNOTE2, string sNOTE3, string sBSR_CD)
         {
             try

@@ -1,0 +1,58 @@
+.status-bar-safe-area {
+    display: none;
+}
+
+@supports (-webkit-touch-callout: none) {
+    .status-bar-safe-area {
+        display: flex;
+        position: sticky;
+        top: 0;
+        height: env(safe-area-inset-top);
+        background-color: #f7f7f7;
+        width: 100%;
+        z-index: 1;
+    }
+
+    .flex-column, .navbar-brand {
+        padding-left: env(safe-area-inset-left);
+    }
+}
+
+.login-container {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+}
+
+h3 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.btn {
+    width: 100%;
+    padding: 10px;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    font-size: 16px;
+}
+
+    .btn:hover {
+        background-color: #0056b3;
+    }

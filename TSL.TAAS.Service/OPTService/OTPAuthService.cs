@@ -11,16 +11,26 @@ using System.DirectoryServices;
 using GSF.Communication.Radius;
 using System.Drawing;
 using TSL.Base.Platform.Services;
+using Microsoft.Extensions.DependencyInjection;
+using Org.BouncyCastle.Ocsp;
+using GSF.Net.Smtp;
+using System.Security.Cryptography;
+using Bogus.DataSets;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.DataProtection;
+using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
 
 namespace TSL.TAAA.Service.OPTService
 {
     [RegisterIOC(IocType.Singleton)]
-    public class OTP_AuthService : IOTP_AuthService
+    public class OTPAuthService : IOTPAuthService
     {
         private readonly IOTP_AuthDataProvider _otp_AuthDataProvider;
-        private readonly ILog<OTP_AuthService> _logger;
+        private readonly ILog<OTPAuthService> _logger;
         private readonly RadiusAuthorizationOptions _radiusOptions;
         private readonly IAuthService _authService;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+
 
         /// <summary>
         /// constroctor
@@ -29,12 +39,14 @@ namespace TSL.TAAA.Service.OPTService
         /// <param name="logger">logger</param>
         /// <param name="radiusOptions">radius options</param>      
         /// <param name="authService">radius options</param>     
-        public OTP_AuthService(IOTP_AuthDataProvider otp_AuthDataProvider, ILog<OTP_AuthService> logger, RadiusAuthorizationOptions radiusOptions, IAuthService authService)
+        public OTPAuthService(IOTP_AuthDataProvider otp_AuthDataProvider, ILog<OTPAuthService> logger,
+            RadiusAuthorizationOptions radiusOptions, IAuthService authService, IHttpContextAccessor httpContextAccessor)
         {
             _otp_AuthDataProvider = otp_AuthDataProvider;
             _logger = logger;
             _radiusOptions = radiusOptions;
             _authService = authService;
+            _httpContextAccessor = httpContextAccessor;
         }
 
 
@@ -88,33 +100,38 @@ namespace TSL.TAAA.Service.OPTService
         {
             // entry logging
             _logger.Info(nameof(UpdateInsertOTPData), otpAuth);
+            int result = 0;
             try
             {
-                //check if data existing in table
+                //check if data existing in table, get all the data by search critia , status =A as active data
                 IEnumerable<OTP_AUTH> getAuth = await _otp_AuthDataProvider.GetAuthDataBySearchCritia(otpAuth.SystemID, otpAuth.Tel_No, otpAuth.Mail
-                    , otpAuth.CreateTime.Value, otpAuth.EndTime.Value, otpAuth.Status);
-
+                    , otpAuth.CreateTime.Value, otpAuth.EndTime.Value, "A");
 
                 // if result contains any data.
                 if (getAuth.Any())
                 {
                     if (getAuth.Count() == 1)
                     {
-                        // update the data if only one record found
+                        //update all current existing data in the table to complete status
                         _ = await _otp_AuthDataProvider.UpdateAuthDataBySeqNo(getAuth.First().SeqNo);
-                        return new ServiceResult<int>(true, "OK", getAuth.First().SeqNo);
+                        // insert a new data 
+                        otpAuth.Status = "A";
+                       
                     }
                     else
                     {
-                        //update all the data fit in critia.
+                        //update all current existing data in the table to complete status
                         _ = await _otp_AuthDataProvider.UpdateAuthDataAllByCritia(otpAuth.SystemID, otpAuth.Tel_No, otpAuth.Mail
-                        , otpAuth.CreateTime.Value, otpAuth.EndTime.Value, otpAuth.Status);
-                        return new ServiceResult<int>(true, "OK", getAuth.First().SeqNo);
+                        , otpAuth.CreateTime.Value, otpAuth.EndTime.Value, "C");
+                        // insert a new data 
+                        otpAuth.Status = "A";
                     }
+                    result = await _otp_AuthDataProvider.InsertAuthDatAsync(ServiceModelToProviderModel(otpAuth));
+                    return new ServiceResult<int>(true, "OK", result);
                 }
                 else // if no data then insert the data
                 {
-                    int result = await _otp_AuthDataProvider.InsertAuthDatAsync(ServiceModelToProviderModel(otpAuth));
+                    result = await _otp_AuthDataProvider.InsertAuthDatAsync(ServiceModelToProviderModel(otpAuth));
                     return new ServiceResult<int>(true, "OK", result);
                 }
             }
@@ -198,6 +215,138 @@ namespace TSL.TAAA.Service.OPTService
                 return "【登入失敗】(LDAP 驗證錯誤)";
             }
         }
+
+
+
+        /// <summary>
+        ///  產生6碼OTP
+        /// </summary>
+        /// <param name="OTP_Request"></param>
+        /// <param name="sessionID"></param>
+        /// <param name="ipAddress"></param>
+        /// <returns></returns>
+        public string Generate_OTP(OTP_Request OTP_Request, string sessionID, string ipAddress)
+        {
+            Random rnd = new Random();
+            var otp = string.Empty;
+            // Use RandomNumberGenerator static methods instead of RNGCryptoServiceProvider
+            byte[] data = new byte[4];
+            RandomNumberGenerator.Fill(data);
+            // Convert to int.
+            Int32 value = BitConverter.ToInt32(data, 0);
+            if (value < 0) value = -value;
+            otp = value.ToString().Substring(0, 6);
+
+            string v = "OTP No:" + otp;
+            _logger.AddHttpLog("Generate_OTP", ipAddress, OTP_Request.SystemID, sessionID, v);
+            return otp;
+        }
+
+        #region masked methods
+
+        /// <summary>
+        /// mask OTP response
+        /// </summary>
+        /// <param na me="Req"></param>
+        public OTP_Request MaskFunction(OTP_Request Req)
+        {
+            // entry logging
+            _logger.Info(nameof(MaskFunction), Req);
+            // mask the OTP
+            OTP_Request rep = new OTP_Request
+            {
+                SystemID = Req.SystemID,
+                Tel_No = MaskPhone(Req.Tel_No),
+                Mail = MaskMail(Req.Mail),
+                FunctionKey = Req.FunctionKey,
+                Effect_Second = Req.Effect_Second
+            };
+            return rep;
+        }
+
+
+        /// <summary>
+        /// mask phone number
+        /// </summary>
+        /// <param name="Phone"></param>
+        /// <returns></returns>
+        public string MaskPhone(string Phone)
+        {
+            // entry logging
+            _logger.Info(nameof(MaskPhone), Phone);
+
+            // Check if the phone number is not null or empty and has at least 7 characters
+            if (!string.IsNullOrEmpty(Phone) && Phone.Length >= 7)
+            {
+                // Mask the phone number and return the value
+                return Phone.Replace(Phone.Substring(4, 3), "***");
+            }
+            else
+            {
+                return Phone;
+            }
+        }
+
+
+        /// <summary>
+        ///  mask mail by replacing the first part of the email with asterisks
+        /// </summary>
+        /// <param name="Mail"></param>
+        /// <returns></returns>
+        public string MaskMail(string Mail)
+        {
+            // entry logging
+            _logger.Info(nameof(MaskMail), Mail);
+            // Check if the email is not null or empty
+            if (!string.IsNullOrEmpty(Mail))
+            {
+                // Mask the email and return the value
+                return Mail.Replace(Mail.Substring(0, Mail.IndexOf('@')), "***");
+            }
+            else
+            {
+                return Mail;
+            }
+        }
+
+        /// <summary>
+        /// Unlock Active directory account
+        /// </summary>
+        /// <param name="lockedUserId">user acount need to unlock</param>
+        /// <param name="Action">0 unlocked only, 1 unlock and reset the password<</param>
+        /// <returns></returns>
+        public string UnlockAdAccount(string lockedUserId, string Action)
+        {
+            // entry logging    
+            _logger.Info(nameof(UnlockAdAccount), new { lockedUserId, Action });
+            // get the user principal
+            using (var context = new PrincipalContext(ContextType.Domain))
+            {
+                // get the user by user id
+                using (var user = UserPrincipal.FindByIdentity(context, lockedUserId))
+                {
+                    // if user found
+                    if (user != null)
+                    {
+                        // if action is 1 then reset the password
+                        if (Action == "1")
+                        {
+                            // reset the password
+                            user.SetPassword(lockedUserId);
+                        }
+                        // unlock the account
+                        user.UnlockAccount();
+                        return "OK";
+                    }
+                    else
+                    {
+                        return "No user found";
+                    }
+                }
+            }
+        }
+
+        #endregion masked methods
 
 
         #region private methods
@@ -307,6 +456,51 @@ namespace TSL.TAAA.Service.OPTService
         }
 
 
+
+        /// <summary>
+        /// insert data to OTP_AUTH
+        /// </summary>
+        /// <param name="systemID"></param>
+        /// <param name="tel_No"></param>
+        /// <param name="mail"></param>
+        /// <param name="oTP"></param>
+        /// <param name="effect_Second"></param>
+        /// <param name="ipAddress"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public async Task<ServiceResult<int>> insertOTPData(string systemID, string tel_No, string mail, string oTP, int effect_Second, string ipAddress)
+        {
+            // entry logging
+            _logger.Info(nameof(insertOTPData), new { systemID, tel_No, mail, oTP, effect_Second, ipAddress});
+            try
+            {
+                OTP_AUTHServiceModel oTP_AUTH = new OTP_AUTHServiceModel
+                {
+                    SystemID = systemID,
+                    Tel_No = tel_No,
+                    Mail = mail,
+                    OTP = oTP,
+                    Status = "A", // status as active for active data
+                    Effect_Second = effect_Second,
+                    SourceIP = ipAddress
+                };
+                var result = await this.UpdateInsertOTPData(oTP_AUTH);
+
+                if (result.IsOk )
+                {
+                    return new ServiceResult<int>(true, "OK", result.Data);
+                }
+                else
+                {
+                    return new ServiceResult<int>(false, "Failed to insert OTP data", 0);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error("Error on" + nameof(insertOTPData), ex,  new { systemID, tel_No, mail, oTP, effect_Second, ipAddress });
+                return new ServiceResult<int>(false, ex.Message, 0);
+            }
+        }
 
         #endregion
     }
