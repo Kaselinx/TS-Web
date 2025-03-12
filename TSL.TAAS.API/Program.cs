@@ -27,11 +27,24 @@ try
         .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
         .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: true);
 
+    // add session service.
+    builder.Services.AddDistributedMemoryCache();
+    builder.Services.AddSession(options =>
+    {
+        options.IdleTimeout = TimeSpan.FromMinutes(30); // set session timeout
+        options.Cookie.HttpOnly = true;
+        options.Cookie.IsEssential = true;
+    });
 
     // Call the ConfigureServices method to add services to the container
     ConfigureServices(builder.Services, builder.Environment);
 
     var app = builder.Build();
+
+
+
+    // use session.
+    app.UseSession();
 
     // Set CacheDuration for MemoryCacheStorage
     var memoryCacheStorage = app.Services.GetService<MemoryCacheStorage>();
@@ -149,6 +162,7 @@ void ConfigureServices(IServiceCollection services, IWebHostEnvironment environm
     #endregion
 
     services.Configure<TransactionTableWhiteListOption>(configuration.GetSection("TransactionTableWhitelist"));
+    services.Configure<WordingSetterOption>(configuration.GetSection("WordingSetter"));
 
     #region register require service in service layer
     services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();

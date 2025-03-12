@@ -37,4 +37,8 @@
     <None Include="C:\Users\Ronny\source\repos\TS-Web\TSL.Base.Platform\.editorconfig" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\TSL.TOTP.Model.DataAccessLayer\TSL.Common.Model.DataAccessLayer.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -4,6 +4,7 @@ using System.Drawing.Text;
 using System.Security;
 using System.Xml;
 using TSL.TAAA.Service.Interface;
+using TSL.TAAA.Service.TZLogService;
 
 namespace TSL.TAAA.Service.POTService
 {
@@ -11,13 +12,14 @@ namespace TSL.TAAA.Service.POTService
     {
         
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IOTP_AuthService _authService;
+        private readonly IOTPAuthService _authService;
+        private readonly ITZLogService _tzLogService;
 
         /// <summary>
         /// access http context
         /// </summary>
         /// <param name="httpContextAccessor">http content accessor</param>
-        public POTService(IHttpContextAccessor httpContextAccessor, IOTP_AuthService authService)
+        public POTService(IHttpContextAccessor httpContextAccessor, IOTPAuthService authService)
         {
             _httpContextAccessor = httpContextAccessor;
             _authService = authService;
@@ -93,6 +95,7 @@ namespace TSL.TAAA.Service.POTService
             }
 
             // added by ron 2024/09/16
+            _tzLogService.InsertTZLog(User_ID, "", Status, userIP, "TEBS", "LOGIN", 1, "POTService", "Login", "USER", User_ID, "", "", "", "", "");
             //WriteLog writeLog = new WriteLog();
             //writeLog.GetWriteLog("TEBS", User_ID, Role, "Login", Status, ErrorDescription, userIP);
             XmlDocument xmlDoc = new XmlDocument();

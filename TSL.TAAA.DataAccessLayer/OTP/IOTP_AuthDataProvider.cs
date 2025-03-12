@@ -57,5 +57,16 @@ namespace TSL.TAAA.DataAccessLayer.OTP
         Task<int> UpdateAuthDataAllByCritia(string sytemId, string telNo, string mail, DateTime createTime, DateTime EndTime, string status);
 
 
+        /// <summary>
+        /// insert otp data
+        /// </summary>
+        /// <param name="systemID">sytem id</param>
+        /// <param name="tel_No">phone no</param>
+        /// <param name="mail">mail address</param>
+        /// <param name="oTP">otp code</param>
+        /// <param name="effect_Second">effect duration</param>
+        /// <param name="ipAddress">request ip address</param>
+        /// <returns></returns>
+        //Task<int> InsertOPTData(string systemID, string tel_No, string mail, string oTP, int effect_Second, string ipAddress);
     }
 }
